@@ -1,0 +1,16 @@
+{
+  "name": "museon-backend",
+  "version": "1.0.0",
+  "description": "graphql backend for museon",
+  "main": "server.js",
+  "scripts": {
+    "start": "nodemon server.js --exec babel-node --presets es2015"
+  },
+  "license": "MIT",
+  "private": true,
+  "dependencies": {
+    "babel-cli": "^6.26.0",
+    "babel-preset-es2015": "^6.24.1",
+    "graphql-yoga": "^1.18.3"
+  }
+}
