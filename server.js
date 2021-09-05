@@ -4,6 +4,8 @@ const Albums = require("./dummy-database/albums.json");
 const Songs = require("./dummy-database/songs.json");
 const Artists = require("./dummy-database/artists.json");
 const SongsArtist = require("./dummy-database/songs-artists.json");
+const FeaturedArtists = require("./dummy-database/featured-artists.json");
+const FeaturedPlaylists = require("./dummy-database/featured-playlists.json");
 
 const typeDefs = `
   type Query {
@@ -13,12 +15,21 @@ const typeDefs = `
     albums: [Album!]!
     artist(id: ID): Artist!
     artists: [Artist!]!
+    featured: Featured!
   }
 
   type Album {
     id: ID!
     title: String!
     cover: String!
+    songs: [Song!]!
+  }
+
+  type Playlist {
+    id: ID!
+    title: String!
+    cover: String!
+    songIDs: [Int!]
     songs: [Song!]!
   }
 
@@ -37,6 +48,11 @@ const typeDefs = `
     cover: String
     songs: [Song!]
   }
+
+  type Featured {
+    playlists: [Playlist!]!
+    artists: [Artist!]!
+  }
 `;
 
 const resolvers = {
@@ -47,6 +63,10 @@ const resolvers = {
     albums: () => Albums,
     artist: (_, { id }) => Artists.find((artist) => artist.id === id),
     artists: () => Artists,
+    featured: () => ({
+      playlists: FeaturedPlaylists,
+      artists: Artists.filter(({ id }) => FeaturedArtists.includes(id)),
+    }),
   },
   Album: {
     songs: (parent) => Songs.filter((song) => song.albumID === parent.id),
@@ -73,6 +93,9 @@ const resolvers = {
       });
       return Songs.filter((song) => songIDs.includes(song.id));
     },
+  },
+  Playlist: {
+    songs: (parent) => Songs.filter(({ id }) => parent.songIDs.includes(id)),
   },
 };
 
