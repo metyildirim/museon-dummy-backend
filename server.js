@@ -1,8 +1,9 @@
 import { GraphQLServer } from "graphql-yoga";
 
-const Albums = require("./dummy-database/albums.json");
 const Songs = require("./dummy-database/songs.json");
 const Artists = require("./dummy-database/artists.json");
+const Albums = require("./dummy-database/albums.json");
+const Playlists = require("./dummy-database/playlists.json");
 const SongsArtist = require("./dummy-database/songs-artists.json");
 const FeaturedArtists = require("./dummy-database/featured-artists.json");
 const FeaturedPlaylists = require("./dummy-database/featured-playlists.json");
@@ -13,6 +14,7 @@ const typeDefs = `
     songs: [Song!]!
     album(id: ID): Album!
     albums: [Album!]!
+    playlist(id: ID): Playlist!
     artist(id: ID): Artist!
     artists: [Artist!]!
     featured: Featured!
@@ -61,6 +63,7 @@ const resolvers = {
     songs: () => Songs,
     album: (_, { id }) => Albums.find((album) => album.id === id),
     albums: () => Albums,
+    playlist: (_, { id }) => Playlists.find((playlist) => playlist.id === id),
     artist: (_, { id }) => Artists.find((artist) => artist.id === id),
     artists: () => Artists,
     featured: () => ({
