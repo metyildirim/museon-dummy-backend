@@ -18,6 +18,7 @@ const typeDefs = `
     artist(id: ID): Artist!
     artists: [Artist!]!
     featured: Featured!
+    search(query: String): Search!
   }
 
   type Album {
@@ -55,6 +56,12 @@ const typeDefs = `
     playlists: [Playlist!]!
     artists: [Artist!]!
   }
+
+  type Search {
+    albums: [Album!]!
+    artists: [Artist!]!
+    songs: [Song!]!
+  }
 `;
 
 const resolvers = {
@@ -69,6 +76,17 @@ const resolvers = {
     featured: () => ({
       playlists: FeaturedPlaylists,
       artists: Artists.filter(({ id }) => FeaturedArtists.includes(id)),
+    }),
+    search: (_, { query }) => ({
+      albums: Albums.filter(({ title }) =>
+        title.toLowerCase().includes(query.toLowerCase())
+      ),
+      artists: Artists.filter(({ name }) =>
+        name.toLowerCase().includes(query.toLowerCase())
+      ),
+      songs: Songs.filter(({ title }) =>
+        title.toLowerCase().includes(query.toLowerCase())
+      ),
     }),
   },
   Album: {
