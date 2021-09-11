@@ -1,5 +1,12 @@
-import { GraphQLServer } from "graphql-yoga";
+import { ApolloServer, gql } from "apollo-server";
+import { buildFederatedSchema } from "@apollo/federation";
+import { applyMiddleware } from "graphql-middleware";
+import { rule, shield } from "graphql-shield";
+import cookieParser from "set-cookie-parser";
+import jwt from "jsonwebtoken";
+import bcrypt from "bcryptjs";
 
+const Users = require("./dummy-database/users.json");
 const Songs = require("./dummy-database/songs.json");
 const Artists = require("./dummy-database/artists.json");
 const Albums = require("./dummy-database/albums.json");
@@ -8,7 +15,10 @@ const SongsArtist = require("./dummy-database/songs-artists.json");
 const FeaturedArtists = require("./dummy-database/featured-artists.json");
 const FeaturedPlaylists = require("./dummy-database/featured-playlists.json");
 
-const typeDefs = `
+const SALT = 12;
+const JWT_SECRET = "123123123123";
+
+const typeDefs = gql`
   type Query {
     song(id: ID): Song!
     songs: [Song!]!
@@ -19,6 +29,12 @@ const typeDefs = `
     artists: [Artist!]!
     featured: Featured!
     search(query: String): Search!
+  }
+
+  type Mutation {
+    login(username_email: String!, password: String!): AuthResult!
+    register(username: String!, email: String!, password: String!): AuthResult!
+    logout: Boolean!
   }
 
   type Album {
@@ -62,6 +78,11 @@ const typeDefs = `
     artists: [Artist!]!
     songs: [Song!]!
   }
+
+  type AuthResult {
+    result: Boolean!
+    error: String
+  }
 `;
 
 const resolvers = {
@@ -88,6 +109,50 @@ const resolvers = {
         title.toLowerCase().includes(query.toLowerCase())
       ),
     }),
+  },
+  Mutation: {
+    login: (_, { username_email, password }, { res }) => {
+      const user = Users.find(
+        (user) =>
+          username_email === user.username || username_email === user.email
+      );
+      if (!user) {
+        return { result: false, error: "Invalid username or email!" };
+      } else if (!bcrypt.compareSync(password, user.password)) {
+        return { result: false, error: "Invalid password!" };
+      } else {
+        const token = jwt.sign({ user: username_email }, JWT_SECRET, {
+          expiresIn: "1d",
+        });
+        res.cookie("auth", token, {
+          httpOnly: true,
+          secure: process.env.NODE_ENV === "production",
+          maxAge: 1000 * 60 * 60 * 24 * 1, // 1 day
+        });
+        return { result: true };
+      }
+    },
+    register: (_, { username, email, password }) => {
+      const user = Users.find(
+        (user) => username === user.username || email === user.email
+      );
+      if (user) {
+        return { result: false, error: "User already has an account!" };
+      } else {
+        const hash = bcrypt.hashSync(password, SALT);
+        const id = Users.length + 1;
+        Users.push({ id, username, email, password: hash });
+        return { result: true };
+      }
+    },
+    logout: (_, {}, { res }) => {
+      res.cookie("auth", "expired", {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        maxAge: 0,
+      });
+      return true;
+    },
   },
   Album: {
     songs: (parent) => Songs.filter((song) => song.albumID === parent.id),
@@ -120,5 +185,48 @@ const resolvers = {
   },
 };
 
-const server = new GraphQLServer({ typeDefs, resolvers });
-server.start(() => console.log("Server is running on localhost:4000"));
+// Auth
+function getClaims(req) {
+  const cookies = cookieParser.parse(req.headers.cookie, { map: true });
+  let token;
+  try {
+    token = jwt.verify(cookies.auth.value, JWT_SECRET);
+  } catch (e) {
+    return null;
+  }
+  return token;
+}
+
+// Rules
+const isAuthenticated = rule()(async (_parent, _args, ctx) => {
+  return ctx.claims !== null;
+});
+
+// Permissions
+const permissions = shield({
+  Query: {
+    song: isAuthenticated,
+    songs: isAuthenticated,
+    album: isAuthenticated,
+    albums: isAuthenticated,
+    playlist: isAuthenticated,
+    artist: isAuthenticated,
+    artists: isAuthenticated,
+    featured: isAuthenticated,
+    search: isAuthenticated,
+  },
+});
+
+const server = new ApolloServer({
+  schema: applyMiddleware(
+    buildFederatedSchema([{ typeDefs, resolvers }]),
+    permissions
+  ),
+  context: ({ req, res }) => ({
+    req,
+    res,
+    claims: getClaims(req),
+  }),
+});
+
+server.listen();

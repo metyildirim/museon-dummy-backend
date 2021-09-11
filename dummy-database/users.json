@@ -1,0 +1,14 @@
+[
+  {
+    "id": 1,
+    "username": "metyildirim",
+    "email": "test@test.com",
+    "password": "$2a$12$f35oCKCQBklzbjVOAtGPmOywl8UpJ59Yh0SWjaSy1K/AZlaGlCn5m"
+  },
+  {
+    "id": 2,
+    "username": "neon",
+    "email": "test2@test.com",
+    "password": "$2a$12$zpDKldmVdHdIHNqkYRLPO.GbVVrRte3fjqM7X48oSMHnr3/UAgzr6"
+  }
+]
