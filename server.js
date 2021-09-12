@@ -117,17 +117,17 @@ const resolvers = {
           username_email === user.username || username_email === user.email
       );
       if (!user) {
-        return { result: false, error: "Invalid username or email!" };
+        return { result: false, error: "Invalid Username or Email!" };
       } else if (!bcrypt.compareSync(password, user.password)) {
-        return { result: false, error: "Invalid password!" };
+        return { result: false, error: "Invalid Password!" };
       } else {
         const token = jwt.sign({ user: username_email }, JWT_SECRET, {
-          expiresIn: "1d",
+          expiresIn: "7d",
         });
         res.cookie("auth", token, {
           httpOnly: true,
           secure: process.env.NODE_ENV === "production",
-          maxAge: 1000 * 60 * 60 * 24 * 1, // 1 day
+          maxAge: 1000 * 60 * 60 * 24 * 7, // 7 days
         });
         return { result: true };
       }
@@ -137,7 +137,7 @@ const resolvers = {
         (user) => username === user.username || email === user.email
       );
       if (user) {
-        return { result: false, error: "User already has an account!" };
+        return { result: false, error: "Username or Email already taken!" };
       } else {
         const hash = bcrypt.hashSync(password, SALT);
         const id = Users.length + 1;
@@ -227,6 +227,11 @@ const server = new ApolloServer({
     res,
     claims: getClaims(req),
   }),
+  cors: {
+    credentials: true,
+    origin: "http://localhost:3000",
+  },
 });
 
 server.listen();
+console.log(`🚀 Server ready at http://localhost:4000${server.graphqlPath}`);
