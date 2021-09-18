@@ -1,3 +1,5 @@
+require("dotenv").config();
+
 import { ApolloServer, gql } from "apollo-server";
 import { buildFederatedSchema } from "@apollo/federation";
 import { applyMiddleware } from "graphql-middleware";
@@ -15,8 +17,8 @@ const SongsArtist = require("./dummy-database/songs-artists.json");
 const FeaturedArtists = require("./dummy-database/featured-artists.json");
 const FeaturedPlaylists = require("./dummy-database/featured-playlists.json");
 
-const SALT = 12;
-const JWT_SECRET = "123123123123";
+const SALT = process.env.BCRYPT_SALT;
+const JWT_SECRET = process.env.JWT_SECRET;
 
 const typeDefs = gql`
   type Query {
@@ -79,8 +81,15 @@ const typeDefs = gql`
     songs: [Song!]!
   }
 
+  type User {
+    id: ID!
+    username: String!
+    email: String!
+    password: String!
+  }
+
   type AuthResult {
-    result: Boolean!
+    result: User
     error: String
   }
 `;
@@ -117,9 +126,9 @@ const resolvers = {
           username_email === user.username || username_email === user.email
       );
       if (!user) {
-        return { result: false, error: "Invalid Username or Email!" };
+        return { error: "Invalid Username or Email!" };
       } else if (!bcrypt.compareSync(password, user.password)) {
-        return { result: false, error: "Invalid Password!" };
+        return { error: "Invalid Password!" };
       } else {
         const token = jwt.sign({ user: username_email }, JWT_SECRET, {
           expiresIn: "7d",
@@ -129,20 +138,28 @@ const resolvers = {
           secure: process.env.NODE_ENV === "production",
           maxAge: 1000 * 60 * 60 * 24 * 7, // 7 days
         });
-        return { result: true };
+        return { result: { id: user.id, username: user.username } };
       }
     },
-    register: (_, { username, email, password }) => {
+    register: (_, { username, email, password }, { res }) => {
       const user = Users.find(
         (user) => username === user.username || email === user.email
       );
       if (user) {
-        return { result: false, error: "Username or Email already taken!" };
+        return { error: "Username or Email already taken!" };
       } else {
         const hash = bcrypt.hashSync(password, SALT);
         const id = Users.length + 1;
         Users.push({ id, username, email, password: hash });
-        return { result: true };
+        const token = jwt.sign({ user: username }, JWT_SECRET, {
+          expiresIn: "7d",
+        });
+        res.cookie("auth", token, {
+          httpOnly: true,
+          secure: process.env.NODE_ENV === "production",
+          maxAge: 1000 * 60 * 60 * 24 * 7, // 7 days
+        });
+        return { result: { id: id, username: username } };
       }
     },
     logout: (_, {}, { res }) => {
