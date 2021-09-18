@@ -17,7 +17,7 @@ const SongsArtist = require("./dummy-database/songs-artists.json");
 const FeaturedArtists = require("./dummy-database/featured-artists.json");
 const FeaturedPlaylists = require("./dummy-database/featured-playlists.json");
 
-const SALT = process.env.BCRYPT_SALT;
+const SALT = Number(process.env.BCRYPT_SALT);
 const JWT_SECRET = process.env.JWT_SECRET;
 
 const typeDefs = gql`
