@@ -16,6 +16,7 @@ const Playlists = require("./dummy-database/playlists.json");
 const SongsArtist = require("./dummy-database/songs-artists.json");
 const FeaturedArtists = require("./dummy-database/featured-artists.json");
 const FeaturedPlaylists = require("./dummy-database/featured-playlists.json");
+const UserLikesSongs = require("./dummy-database/user-likes-songs.json");
 
 const SALT = Number(process.env.BCRYPT_SALT);
 const JWT_SECRET = process.env.JWT_SECRET;
@@ -31,12 +32,15 @@ const typeDefs = gql`
     artists: [Artist!]!
     featured: Featured!
     search(query: String): Search!
+    likes(id: ID): [Song!]!
   }
 
   type Mutation {
     login(username_email: String!, password: String!): AuthResult!
     register(username: String!, email: String!, password: String!): AuthResult!
     logout: Boolean!
+    addLike(songID: ID, userID: ID): LikeResult!
+    removeLike(songID: ID, userID: ID): LikeResult!
   }
 
   type Album {
@@ -92,6 +96,11 @@ const typeDefs = gql`
     result: User
     error: String
   }
+
+  type LikeResult {
+    result: String
+    error: String
+  }
 `;
 
 const resolvers = {
@@ -118,6 +127,15 @@ const resolvers = {
         title.toLowerCase().includes(query.toLowerCase())
       ),
     }),
+    likes: (_, { id }) => {
+      const songIDs = [];
+      UserLikesSongs.forEach(({ userID, songID }) => {
+        if (userID === id) {
+          songIDs.push(songID);
+        }
+      });
+      return Songs.filter(({ id }) => songIDs.includes(id));
+    },
   },
   Mutation: {
     login: (_, { username_email, password }, { res }) => {
@@ -169,6 +187,31 @@ const resolvers = {
         maxAge: 0,
       });
       return true;
+    },
+    addLike: (_, { songID, userID }) => {
+      if (
+        UserLikesSongs.filter(
+          (usersong) => usersong.userID === userID && usersong.songID === songID
+        ).length > 0
+      ) {
+        return { error: "song already liked" };
+      }
+      UserLikesSongs.push({ songID: songID, userID: userID });
+      return { result: "success" };
+    },
+    removeLike: (_, { songID, userID }) => {
+      let index = -1;
+      UserLikesSongs.forEach((usersong, idx) => {
+        if (usersong.songID === songID && usersong.userID === userID) {
+          index = idx;
+        }
+      });
+      if (index >= 0) {
+        UserLikesSongs.splice(index, 1);
+        return { result: "success" };
+      } else {
+        return { error: "Couldn't find liked song" };
+      }
     },
   },
   Album: {
@@ -231,6 +274,11 @@ const permissions = shield({
     artists: isAuthenticated,
     featured: isAuthenticated,
     search: isAuthenticated,
+    likes: isAuthenticated,
+  },
+  Mutation: {
+    addLike: isAuthenticated,
+    removeLike: isAuthenticated,
   },
 });
 
