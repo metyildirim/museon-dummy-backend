@@ -4,7 +4,8 @@
   "description": "graphql backend for museon",
   "main": "server.js",
   "scripts": {
-    "start": "nodemon server.js --exec babel-node --presets es2015"
+    "start": "node server.js --exec babel-node --presets es2015",
+    "start:dev": "nodemon server.js --exec babel-node --presets es2015"
   },
   "license": "MIT",
   "private": true,
