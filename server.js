@@ -20,6 +20,8 @@ const UserLikesSongs = require("./dummy-database/user-likes-songs.json");
 
 const SALT = Number(process.env.BCRYPT_SALT);
 const JWT_SECRET = process.env.JWT_SECRET;
+const PORT = Number(process.env.PORT);
+const ORIGIN = process.env.ORIGIN;
 
 const typeDefs = gql`
   type Query {
@@ -294,9 +296,9 @@ const server = new ApolloServer({
   }),
   cors: {
     credentials: true,
-    origin: "http://localhost:3000",
+    origin: ORIGIN,
   },
 });
 
-server.listen();
-console.log(`🚀 Server ready at http://localhost:4000${server.graphqlPath}`);
+server.listen({ port: PORT });
+console.log(`🚀 Server is up and running on PORT:${PORT}`);
