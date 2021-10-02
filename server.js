@@ -22,6 +22,7 @@ const SALT = Number(process.env.BCRYPT_SALT);
 const JWT_SECRET = process.env.JWT_SECRET;
 const PORT = Number(process.env.PORT);
 const ORIGIN = process.env.ORIGIN;
+const NODE_ENV = process.env.NODE_ENV;
 
 const typeDefs = gql`
   type Query {
@@ -155,8 +156,9 @@ const resolvers = {
         });
         res.cookie("auth", token, {
           httpOnly: true,
-          secure: process.env.NODE_ENV === "production",
+          secure: NODE_ENV === "production",
           maxAge: 1000 * 60 * 60 * 24 * 7, // 7 days
+          sameSite: NODE_ENV === "production" ? "None" : "Lax",
         });
         return { result: { id: user.id, username: user.username } };
       }
@@ -178,6 +180,7 @@ const resolvers = {
           httpOnly: true,
           secure: process.env.NODE_ENV === "production",
           maxAge: 1000 * 60 * 60 * 24 * 7, // 7 days
+          sameSite: NODE_ENV === "production" ? "None" : "Lax",
         });
         return { result: { id: id, username: username } };
       }
@@ -187,6 +190,7 @@ const resolvers = {
         httpOnly: true,
         secure: process.env.NODE_ENV === "production",
         maxAge: 0,
+        sameSite: NODE_ENV === "production" ? "None" : "Lax",
       });
       return true;
     },
