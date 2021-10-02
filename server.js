@@ -1,12 +1,12 @@
 require("dotenv").config();
 
-import { ApolloServer, gql } from "apollo-server";
-import { buildFederatedSchema } from "@apollo/federation";
-import { applyMiddleware } from "graphql-middleware";
-import { rule, shield } from "graphql-shield";
-import cookieParser from "set-cookie-parser";
-import jwt from "jsonwebtoken";
-import bcrypt from "bcryptjs";
+const { ApolloServer, gql } = require("apollo-server");
+const { buildFederatedSchema } = require("@apollo/federation");
+const { applyMiddleware } = require("graphql-middleware");
+const { rule, shield } = require("graphql-shield");
+const cookieParser = require("set-cookie-parser");
+const jwt = require("jsonwebtoken");
+const bcrypt = require("bcryptjs");
 
 const Users = require("./dummy-database/users.json");
 const Songs = require("./dummy-database/songs.json");
