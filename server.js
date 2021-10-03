@@ -4,7 +4,6 @@ const { ApolloServer, gql } = require("apollo-server");
 const { buildFederatedSchema } = require("@apollo/federation");
 const { applyMiddleware } = require("graphql-middleware");
 const { rule, shield } = require("graphql-shield");
-const cookieParser = require("set-cookie-parser");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
 
@@ -22,7 +21,6 @@ const SALT = Number(process.env.BCRYPT_SALT);
 const JWT_SECRET = process.env.JWT_SECRET;
 const PORT = Number(process.env.PORT);
 const ORIGIN = process.env.ORIGIN;
-const NODE_ENV = process.env.NODE_ENV;
 
 const typeDefs = gql`
   type Query {
@@ -154,12 +152,7 @@ const resolvers = {
         const token = jwt.sign({ user: username_email }, JWT_SECRET, {
           expiresIn: "7d",
         });
-        res.cookie("auth", token, {
-          httpOnly: true,
-          sameSite: NODE_ENV === "production" ? "None" : "Lax",
-          secure: NODE_ENV === "production",
-          maxAge: 1000 * 60 * 60 * 24 * 7, // 7 days
-        });
+        res.header("x-auth-token", token);
         return { result: { id: user.id, username: user.username } };
       }
     },
@@ -176,22 +169,11 @@ const resolvers = {
         const token = jwt.sign({ user: username }, JWT_SECRET, {
           expiresIn: "7d",
         });
-        res.cookie("auth", token, {
-          httpOnly: true,
-          sameSite: NODE_ENV === "production" ? "None" : "Lax",
-          secure: process.env.NODE_ENV === "production",
-          maxAge: 1000 * 60 * 60 * 24 * 7, // 7 days
-        });
+        res.header("x-auth-token", token);
         return { result: { id: id, username: username } };
       }
     },
-    logout: (_, {}, { res }) => {
-      res.cookie("auth", "expired", {
-        httpOnly: true,
-        sameSite: NODE_ENV === "production" ? "None" : "Lax",
-        secure: process.env.NODE_ENV === "production",
-        maxAge: 0,
-      });
+    logout: () => {
       return true;
     },
     addLike: (_, { songID, userID }) => {
@@ -253,10 +235,9 @@ const resolvers = {
 
 // Auth
 function getClaims(req) {
-  const cookies = cookieParser.parse(req.headers.cookie, { map: true });
   let token;
   try {
-    token = jwt.verify(cookies.auth.value, JWT_SECRET);
+    token = jwt.verify(req.headers["x-auth-token"], JWT_SECRET);
   } catch (e) {
     return null;
   }
