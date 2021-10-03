@@ -156,9 +156,9 @@ const resolvers = {
         });
         res.cookie("auth", token, {
           httpOnly: true,
+          sameSite: NODE_ENV === "production" ? "None" : "Lax",
           secure: NODE_ENV === "production",
           maxAge: 1000 * 60 * 60 * 24 * 7, // 7 days
-          sameSite: NODE_ENV === "production" ? "None" : "Lax",
         });
         return { result: { id: user.id, username: user.username } };
       }
@@ -178,9 +178,9 @@ const resolvers = {
         });
         res.cookie("auth", token, {
           httpOnly: true,
+          sameSite: NODE_ENV === "production" ? "None" : "Lax",
           secure: process.env.NODE_ENV === "production",
           maxAge: 1000 * 60 * 60 * 24 * 7, // 7 days
-          sameSite: NODE_ENV === "production" ? "None" : "Lax",
         });
         return { result: { id: id, username: username } };
       }
@@ -188,9 +188,9 @@ const resolvers = {
     logout: (_, {}, { res }) => {
       res.cookie("auth", "expired", {
         httpOnly: true,
+        sameSite: NODE_ENV === "production" ? "None" : "Lax",
         secure: process.env.NODE_ENV === "production",
         maxAge: 0,
-        sameSite: NODE_ENV === "production" ? "None" : "Lax",
       });
       return true;
     },
