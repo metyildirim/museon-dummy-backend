@@ -301,6 +301,7 @@ const server = new ApolloServer({
   cors: {
     credentials: true,
     origin: ORIGIN,
+    allowedHeaders: ["Content-Type", "Authorization", "Set-Cookie"],
   },
 });
 
