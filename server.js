@@ -114,7 +114,7 @@ const resolvers = {
     artist: (_, { id }) => Artists.find((artist) => artist.id === id),
     artists: () => Artists,
     featured: () => ({
-      playlists: FeaturedPlaylists,
+      playlists: Playlists.filter(({ id }) => FeaturedPlaylists.includes(id)),
       artists: Artists.filter(({ id }) => FeaturedArtists.includes(id)),
     }),
     search: (_, { query }) => ({
