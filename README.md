@@ -3,6 +3,18 @@ A GraphQL Server for [Museon](https://github.com/metyildirim/museon-web)
 
 ## Development
 
+### Environments
+
+- Copy `.env_template` to `.env` on same structure level.
+- Fill required environment variables.
+
+| Environment      | Type   | Recommendation for Development | Description                                |
+| ---------------- | ------ | ------------------------------ | -------------------------------------------|
+| JWT_SECRET       | String | topsecret                      | JWT secret key to encrypt & decrypt tokens |
+| BCRYPT_SALT      | Number | 12                             | Salt value of bcrypt                       |
+| PORT             | Number | 4000                           | The port of GraphQL Server                 |
+| ORIGIN           | String | http://localhost:3000          | Allowed origin for CORS                    |
+
 Installing dependencies:
 
 ```bash
