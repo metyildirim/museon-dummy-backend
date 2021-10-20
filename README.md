@@ -1,4 +1,4 @@
-# museon-dummy-backend
+# museon-dummy-backend &middot; [![GitHub license](https://img.shields.io/badge/License-GPL3-blue.svg)](https://github.com/metyildirim/museon-dummy-backend/blob/master/LICENSE)
 A GraphQL Server for [Museon](https://github.com/metyildirim/museon-web)
 
 Installing dependencies:
