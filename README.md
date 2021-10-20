@@ -1,4 +1,4 @@
-# museon-dummy-backend &middot; [![GitHub license](https://img.shields.io/badge/License-GPL3-blue.svg)](https://github.com/metyildirim/museon-dummy-backend/blob/master/LICENSE)
+# museon-dummy-backend &middot; [![GitHub license](https://img.shields.io/badge/License-GPL3-blue.svg)](https://github.com/metyildirim/museon-dummy-backend/blob/master/LICENSE) [![CodeQL](https://github.com/metyildirim/museon-dummy-backend/actions/workflows/codeql-analysis.yml/badge.svg)](https://github.com/metyildirim/museon-dummy-backend/actions/workflows/codeql-analysis.yml)
 A GraphQL Server for [Museon](https://github.com/metyildirim/museon-web)
 
 ## Development
