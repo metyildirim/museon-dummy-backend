@@ -11,7 +11,7 @@
   "private": true,
   "dependencies": {
     "@apollo/federation": "^0.32.0",
-    "apollo-server": "^3.3.0",
+    "apollo-server": "^3.4.1",
     "babel-cli": "^6.26.0",
     "babel-preset-es2015": "^6.24.1",
     "bcryptjs": "^2.4.3",
